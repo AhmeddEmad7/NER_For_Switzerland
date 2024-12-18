@@ -1,9 +1,10 @@
 import XlmRModel
 import prepare_data
 import torch
-from transformers import AutoTokenizer, AutoConfig
+from transformers import AutoTokenizer, AutoConfig, DataCollatorForTokenClassification
 from transformers.trainer import TrainingArguments, Trainer
 import numpy as np
+import evals
 
 panx_ch = prepare_data.get_data()
 tags = prepare_data.tags
@@ -18,7 +19,10 @@ tag2index = {tag: idx for idx, tag in enumerate(tags.names)}
 xlmr_config = AutoConfig.from_pretrained("xlm-roberta-base", num_labels=tags.num_classes, id2label=index2tag, label2id=tag2index)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 xlmr_tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
+data_collator = DataCollatorForTokenClassification(xlmr_tokenizer)
 
+def model_init():
+    return (XlmRModel.XLMRobertaForTokenClassification.from_pretrained("xlm-roberta-base", config=xlmr_config).to(device))
 
 def align_predictions(predictions, label_ids):
     """
@@ -71,5 +75,11 @@ def main(zero_shot_flag=True, multi_flag=True, n_epoch=3, batch_size=24,):
             save_steps=1e6, weight_decay=0.01, disable_tqdm=False,
             logging_steps=logging_steps, push_to_hub=False)
         
+        trainer = Trainer(model_init=model_init, args=training_args,
+        data_collator=data_collator, compute_metrics=compute_metrics,
+        train_dataset=panx_de_encoded["train"],
+        eval_dataset=panx_de_encoded["validation"],
+        tokenizer=xlmr_tokenizer)
         
+
 
