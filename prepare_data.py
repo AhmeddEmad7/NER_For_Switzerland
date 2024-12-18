@@ -84,3 +84,26 @@ def tokenize_and_align_labels(examples, xlmr_tokenizer):
         labels.append(label_ids)
     tokenized_inputs["labels"] = labels
     return tokenized_inputs
+
+def encode_panx_dataset(corpus):
+    """
+    Encodes a PAN-X dataset by tokenizing the input sentences and aligning NER labels.
+
+    This function applies the `tokenize_and_align_labels` function to the dataset using 
+    batched processing, removing unnecessary columns (e.g., 'tokens', 'ner_tags', 'langs') 
+    to prepare the dataset for model training.
+
+    Args:
+        corpus (DatasetDict): A `DatasetDict` object containing splits (e.g., 'train', 
+                              'validation', 'test') with the features:
+                              - "tokens": List of tokens for each sentence.
+                              - "ner_tags": NER labels for the tokens.
+                              - "langs": Language identifiers.
+
+    Returns:
+        DatasetDict: A `DatasetDict` with tokenized inputs and aligned labels, 
+                     containing features such as "input_ids", "attention_mask", 
+                     and "labels".
+    """
+    return corpus.map(tokenize_and_align_labels, batched=True, 
+                      remove_columns=['tokens', 'ner_tags', 'langs'])
