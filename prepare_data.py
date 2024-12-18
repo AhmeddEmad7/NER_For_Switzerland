@@ -107,3 +107,4 @@ def encode_panx_dataset(corpus):
     """
     return corpus.map(tokenize_and_align_labels, batched=True, 
                       remove_columns=['tokens', 'ner_tags', 'langs'])
+
