@@ -76,10 +76,11 @@ def main(zero_shot_flag=True, multi_flag=True, n_epoch=3, batch_size=24,):
             logging_steps=logging_steps, push_to_hub=False)
         
         trainer = Trainer(model_init=model_init, args=training_args,
-        data_collator=data_collator, compute_metrics=compute_metrics,
-        train_dataset=panx_de_encoded["train"],
-        eval_dataset=panx_de_encoded["validation"],
-        tokenizer=xlmr_tokenizer)
+            data_collator=data_collator, compute_metrics=evals.compute_metrics,
+            train_dataset=panx_de_encoded["train"],
+            eval_dataset=panx_de_encoded["validation"],
+            tokenizer=xlmr_tokenizer)
         
+        trainer.train() 
 
 
