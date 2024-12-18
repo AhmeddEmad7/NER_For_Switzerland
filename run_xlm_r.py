@@ -9,8 +9,7 @@ from collections import defaultdict, Counter
 from datasets import concatenate_datasets
 from datasets import DatasetDict
 import pandas as pd
-
-
+import argparse
 
 
 panx_ch = prepare_data.get_data()
@@ -21,7 +20,6 @@ panx_de = panx_ch["de"].map(prepare_data.create_tag_names)
 
 index2tag = {idx: tag for idx, tag in enumerate(tags.names)}
 tag2index = {tag: idx for idx, tag in enumerate(tags.names)}
-
 
 xlmr_config = AutoConfig.from_pretrained("xlm-roberta-base", num_labels=tags.num_classes, id2label=index2tag, label2id=tag2index)
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -147,3 +145,16 @@ def main(multi_flag=True, n_epoch=3, batch_size=24,):
             inplace=True)
             f1_scores_df
 
+
+def get_args():
+    parser = argparse.ArgumentParser(description="Process some arguments.")
+    parser.add_argument('--multiflag', type=bool, help="mutlilingual", required=True)
+    parser.add_argument('--batchsz', type=int, help="batch size", required=False)
+    parser.add_argument('--epochs',type=int, help="num epochs", required=False)
+
+    args = parser.parse_args()
+    main(args.mutliflag, args.epochs, args.batchsz)
+
+
+if __name__ == "__main__":
+    get_args()
