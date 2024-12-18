@@ -1,8 +1,7 @@
-from transformers import XLMRobertaConfig, AutoConfig, AutoTokenizer, DataCollatorForTokenClassification, Trainer, TrainingArguments
+from transformers import XLMRobertaConfig
 from transformers.models.roberta.modeling_roberta import RobertaModel
 from transformers.models.roberta.modeling_roberta import RobertaPreTrainedModel
 from transformers.modeling_outputs import TokenClassifierOutput
-from torch.nn.functional import cross_entropy
 import torch.nn as nn
 
 
