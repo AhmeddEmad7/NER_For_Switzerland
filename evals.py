@@ -1,5 +1,7 @@
 import prepare_data
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from seqeval.metrics import classification_report, f1_score, precision_score, recall_score
+import matplotlib.pyplot as plt
 
 
 def compute_metrics(eval_pred):
@@ -14,3 +16,14 @@ def get_precision(trainer, dataset):
 
 def get_recall(trainer, dataset):
    return trainer.predict(dataset).metrics["recall"]
+
+def plot_confusion_matrix(y_preds, y_true, labels, show=False):
+   cm = confusion_matrix(y_true, y_preds, normalize="true")
+   fig, ax = plt.subplots(figsize=(6, 6))
+   disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+   disp.plot(cmap="Blues", values_format=".2f", ax=ax, colorbar=False)
+   plt.title("Normalized confusion matrix")
+   if show:
+      plt.show()
+      
+   return cm
