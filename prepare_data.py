@@ -7,7 +7,6 @@ tags=None
 
 
 def get_data():
-    
     langs = ["de", "fr", "it", "en"]
     panx_ch = defaultdict(DatasetDict)
     

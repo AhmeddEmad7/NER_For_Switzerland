@@ -1,4 +1,4 @@
-import XlmRModel
+import mBERTModel
 import prepare_data
 import torch
 from transformers import AutoTokenizer, AutoConfig, DataCollatorForTokenClassification
@@ -21,13 +21,13 @@ panx_de = panx_ch["de"].map(prepare_data.create_tag_names)
 index2tag = {idx: tag for idx, tag in enumerate(tags.names)}
 tag2index = {tag: idx for idx, tag in enumerate(tags.names)}
 
-xlmr_config = AutoConfig.from_pretrained("xlm-roberta-base", num_labels=tags.num_classes, id2label=index2tag, label2id=tag2index)
+mbert_config = AutoConfig.from_pretrained("bert-base-multilingual-cased", num_labels=tags.num_classes, id2label=index2tag, label2id=tag2index)
 device = "cuda" if torch.cuda.is_available() else "cpu"
-xlmr_tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
-data_collator = DataCollatorForTokenClassification(xlmr_tokenizer)
+mbert_tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
+data_collator = DataCollatorForTokenClassification(mbert_tokenizer)
 
 def model_init():
-    return (XlmRModel.XLMRobertaForTokenClassification.from_pretrained("xlm-roberta-base", config=xlmr_config).to(device))
+    return (mBERTModel.BERTForTokenClassification.from_pretrained("bert-base-multilingual-cased", config=mbert_config).to(device))
 
 def evaluate_lang_performance(lang, trainer):
     panx_ds = prepare_data.encode_panx_dataset(panx_ch[lang])
@@ -82,7 +82,7 @@ def main(multi_flag=True, n_epoch=3, batch_size=24,):
     panx_de_encoded = prepare_data.encode_panx_dataset(panx_ch["de"])
     num_epochs = 3
     logging_steps = len(panx_de_encoded["train"]) // batch_size
-    model_name = f"xlm-roberta-base-finetuned-panx-de"
+    model_name = f"bert-base-multilingual-cased-finetuned-panx-de"
 
     training_args = TrainingArguments(
         output_dir=model_name, log_level="error", num_train_epochs=num_epochs,
@@ -95,7 +95,7 @@ def main(multi_flag=True, n_epoch=3, batch_size=24,):
         data_collator=data_collator, compute_metrics=evals.compute_metrics,
         train_dataset=panx_de_encoded["train"],
         eval_dataset=panx_de_encoded["validation"],
-        tokenizer=xlmr_tokenizer)
+        tokenizer=mbert_tokenizer)
         
     trainer.train() 
     f1_scores = defaultdict(dict)
@@ -104,7 +104,7 @@ def main(multi_flag=True, n_epoch=3, batch_size=24,):
     f1_scores["de"]["fr"] = evaluate_lang_performance("fr", trainer)
     print(f"F1-score of [de] model on [fr] dataset: {f1_scores['de']['fr']:.3f}")
 
-###################################################################Mutli Linguagl##############################################
+###################################################################Mutli Lingual Transfer######################################################
 
     if multi_flag:
         langs = ["de", "fr", "it", "en"]
@@ -119,10 +119,10 @@ def main(multi_flag=True, n_epoch=3, batch_size=24,):
 
         corpora_encoded = concatenate_splits(corpora)
         training_args.logging_steps = len(corpora_encoded["train"]) // batch_size
-        training_args.output_dir = "xlm-roberta-base-finetuned-panx-all"
+        training_args.output_dir = "bert-base-multilingual-cased-finetuned-panx-all"
         trainer = Trainer(model_init=model_init, args=training_args,
                         data_collator=data_collator, compute_metrics=evals.compute_metrics,
-                        tokenizer=xlmr_tokenizer, train_dataset=corpora_encoded["train"],
+                        tokenizer=mbert_tokenizer, train_dataset=corpora_encoded["train"],
                         eval_dataset=corpora_encoded["validation"])
         trainer.train()
 
